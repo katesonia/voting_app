@@ -1,7 +1,13 @@
 # voting_app
 An app for voting
 
-##Reference:
+**Phase 1: (current implementation)**
+Every account can cast one vote.
+
+**Phase 2:**
+Only account with at least 1 DotToken can cast 1 vote, and after voting, 1 DotToken will be destroyed.
+
+**Reference:**
 https://truffleframework.com/tutorials/pet-shop
 
 ## How to install tools and login account
