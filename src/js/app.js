@@ -62,18 +62,33 @@ App = {
 
     App.contracts.VoteProposal.deployed().then(function(instance) {
       voteInstance = instance;
+      //return voteInstance.getProposals.call();
+      var account = web3.eth.accounts[0];
+      //return voteInstance.alreadyVoted.call({from: account}), voteInstance.getProposals.call()];
+      return voteInstance.alreadyVoted.call({from: account});
+      
+    }).then(function(alreadyVoted) {
+      //var alreadyVoted = args[0];
+      //var proposals = args[1];
+      if (alreadyVoted) {
+        console.log("User already voted before, cannot vote anymore");
+        
+        App.contracts.VoteProposal.deployed().then(function(instance) {
+          voteInstance = instance;
 
-      return voteInstance.getProposalVotes.call();
-    }).then(function(proposals) {
-      for (i = 0; i < proposals.length; i++) {
-        $('.panel-pet').eq(i).find('button').text('Success').attr('disabled', true);
+          //return voteInstance.getProposals.call();
+          var account = web3.eth.accounts[0];
+          //return voteInstance.alreadyVoted.call({from: account}), ];
+          return voteInstance.getProposals.call();
+        }).then(function(proposals) {
+          for (i = 0; i < proposals.length; i++) {
+            var voteCount = proposals[i];
+            $('.panel-pet').eq(i).find('button').text(voteCount.toString()).attr('disabled', true);
+          }
+        })
       }
     }).catch(function(err) {
       console.log(err.message);
-      console.log("Current provider is:");
-      console.log(window.web3.currentProvider);
-      console.log("Web3 network id is:");
-      console.log(window.web3.version.getNetwork(function(err,res){console.log(res)}));
     });
   },
 
@@ -96,7 +111,7 @@ App = {
 
         // Execute adopt as a transaction by sending account
         // Default to vote 1
-        return voteInstance.vote(proposalId, 1, {from: account});
+        return voteInstance.vote(proposalId, {from: account});
       }).then(function(result) {
         return App.showProposalVote();
       }).catch(function(err) {
