@@ -83,7 +83,7 @@ App = {
         }).then(function(proposals) {
           for (i = 0; i < proposals.length; i++) {
             var voteCount = proposals[i];
-            $('.panel-pet').eq(i).find('button').text(voteCount.toString()).attr('disabled', true);
+            $('.panel-pet').eq(i).find('button').text(voteCount.toString() + " votes!").attr('disabled', true);
           }
         })
       }
