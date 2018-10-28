@@ -51,35 +51,42 @@ contract ERC20Interface {
 
 contract DotToken is ERC20Interface{
     using SafeMath for uint;
+    
+    uint256 constant private MAX_UINT256 = 2**256 - 1;
 
     string public symbol;
     string public name;
     uint8 public decimals;
     uint public _totalSupply;
 
-    mapping(address => uint) balances;
+    address admin;
+
+    mapping(address => uint256) balances;
+    mapping (address => mapping (address => uint256)) public allowed;
 
     // ------------------------------------------------------------------------
     // Constructor
     // ------------------------------------------------------------------------
     constructor() public payable{
         symbol = 'DOT';
-        name = 'DOT Token';
+        name = 'DOT Token';   //How many decimals to show.
+        decimals = 3;
+        admin = 0x147D434e85e5D80552C8d5610C335e17ecAdCAa1;
     }
 
     // ------------------------------------------------------------------------
     // Total supply
     // ------------------------------------------------------------------------
     function totalSupply() public constant returns (uint) {
-        return _totalSupply  - balances[address(0)];
+        return _totalSupply;
     }
 
 
     // ------------------------------------------------------------------------
     // Get the token balance for account `tokenOwner`
     // ------------------------------------------------------------------------
-    function balanceOf(address tokenOwner) public constant returns (uint balance) {
-        return balances[tokenOwner];
+    function balanceOf(address _owner) public constant returns (uint balance) {
+        return balances[_owner];
     }
 
     // ------------------------------------------------------------------------
@@ -87,10 +94,11 @@ contract DotToken is ERC20Interface{
     // - Owner's account must have sufficient balance to transfer
     // - 0 value transfers are allowed
     // ------------------------------------------------------------------------
-    function transfer(address to, uint tokens) public returns (bool success) {
-        balances[msg.sender] = balances[msg.sender].sub(tokens);
-        balances[to] = balances[to].add(tokens);
-        emit Transfer(msg.sender, to, tokens);
+    function transfer(address _to, uint256 _value) public returns (bool success) {
+        require(balances[msg.sender] >= _value);
+        balances[msg.sender] -= _value;
+        balances[_to] += _value;
+        emit Transfer(msg.sender, _to, _value); //solhint-disable-line indent, no-unused-vars
         return true;
     }
 
@@ -103,10 +111,15 @@ contract DotToken is ERC20Interface{
     // - Spender must have sufficient allowance to transfer
     // - 0 value transfers are allowed
     // ------------------------------------------------------------------------
-    function transferFrom(address from, address to, uint tokens) public returns (bool success) {
-        balances[from] = balances[from].sub(tokens);
-        balances[to] = balances[to].add(tokens);
-        emit Transfer(from, to, tokens);
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) {
+        uint256 allowance = allowed[_from][msg.sender];
+        require(balances[_from] >= _value && allowance >= _value);
+        balances[_to] += _value;
+        balances[_from] -= _value;
+        if (allowance < MAX_UINT256) {
+            allowed[_from][msg.sender] -= _value;
+        }
+        emit Transfer(_from, _to, _value); //solhint-disable-line indent, no-unused-vars
         return true;
     }
 
@@ -118,11 +131,14 @@ contract DotToken is ERC20Interface{
     }
 
     // Implement these 2 just to avoid this contract to be abstract, do NOT use.
-    function approve(address spender, uint tokens) public returns (bool success) {
+    function approve(address _spender, uint256 _value) public returns (bool success) {
+        allowed[msg.sender][_spender] = _value;
+        emit Approval(msg.sender, _spender, _value); //solhint-disable-line indent, no-unused-vars
         return true;
     }
-    function allowance(address tokenOwner, address spender) public constant returns (uint remaining) {
-        return 0;
+
+    function allowance(address _owner, address _spender) public view returns (uint256 remaining) {
+        return allowed[_owner][_spender];
     }
     ///////////
     // Generate and destory tokens
@@ -132,10 +148,12 @@ contract DotToken is ERC20Interface{
     // @param receiver address
     // @param amount the quantity of tokens generated
     // @return True if tokens are generated correctly
-    function generateTokens(address receiver, uint amount) public returns (bool) {
-        _totalSupply.add(amount);
-        balances[receiver] = balances[receiver].add(amount);
-        emit Transfer(0, receiver, amount);
+    function generateTokens(address _receiver, uint256 _value) public returns (bool) {
+        // Only admin user can generate and destory tokens.
+        require(msg.sender == admin);
+        _totalSupply.add(_value);
+        balances[_receiver] = balances[_receiver].add(_value);
+        emit Transfer(0, _receiver, _value);
         return true;
     }
 
@@ -143,11 +161,13 @@ contract DotToken is ERC20Interface{
     // @param owner the address that will lose tokens
     // @param amount the quantity of tokens to burn
     // @return True if tokens are burned correctly
-    function destroyTokens(address owner, uint amount) public returns (bool) {
-        require(balances[owner] >= amount);
-        _totalSupply.sub(amount);
-        balances[owner] = balances[owner].sub(amount);
-        emit Transfer(owner, 0, amount);
+    function destroyTokens(address _owner, uint256 _value) public returns (bool) {
+        // Only admin user can generate and destory tokens.
+        require(msg.sender == admin);
+        require(balances[_owner] >= _value);
+        _totalSupply.sub(_value);
+        balances[_owner] = balances[_owner].sub(_value);
+        emit Transfer(_owner, 0, _value);
         return true;
     }
     

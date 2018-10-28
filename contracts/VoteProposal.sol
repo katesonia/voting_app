@@ -14,7 +14,7 @@ contract VoteProposal {
 
     //address chairperson;
     mapping(address => Voter) public voters;
-    uint8[16] public proposalVotes;
+    uint256[16] public proposals;
 
 
     /// Create a new ballot with $(_numProposals) different proposals.
@@ -48,7 +48,7 @@ contract VoteProposal {
             }
     }
 
-    function getProposalVotes() public return (address[16]) {
-        return proposalVotes;
+    function getProposals() public constant returns (uint256[16]) {
+        return proposals;
     }
 }

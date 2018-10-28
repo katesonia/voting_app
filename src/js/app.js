@@ -38,7 +38,7 @@ App = {
   },
 
   initContract: function() {
-    $.getJSON('Adoption.json', function(data) {
+    $.getJSON('VoteProposal.json', function(data) {
       // Get the necessary contract artifact file and instantiate it with truffle-contract
       var VotingArtifact = data;
       App.contracts.VoteProposal = TruffleContract(VotingArtifact);
@@ -54,11 +54,11 @@ App = {
   },
 
   bindEvents: function() {
-    $(document).on('click', '.btn-adopt', App.handleAdopt);
+    $(document).on('click', '.btn-adopt', App.voteProposal);
   },
 
   showProposalVote: function(proposals, account) {
-    var adoptionInstance;
+    var voteInstance;
 
     App.contracts.VoteProposal.deployed().then(function(instance) {
       voteInstance = instance;
@@ -70,13 +70,17 @@ App = {
       }
     }).catch(function(err) {
       console.log(err.message);
+      console.log("Current provider is:");
+      console.log(window.web3.currentProvider);
+      console.log("Web3 network id is:");
+      console.log(window.web3.version.getNetwork(function(err,res){console.log(res)}));
     });
   },
 
   voteProposal: function(event) {
     event.preventDefault();
 
-    var proposalId = parseInt($(event.target).data('voteCount'));
+    var proposalId = parseInt($(event.target).data('id'));
 
     var voteInstance;
 
