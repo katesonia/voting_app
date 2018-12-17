@@ -4,7 +4,7 @@ contract VoteProposal {
 
     struct Voter {
         bool voted;
-        uint8 vote;
+        uint8 proposalId;
     }
 
     mapping(address => Voter) public voters;
@@ -18,34 +18,36 @@ contract VoteProposal {
 
     /// Give a single vote to proposal $(toProposal).
     function vote(uint8 toProposal) public {
+        require(voters[msg.sender].voted || toProposal >= proposals.length);
         
-        Voter storage sender = voters[msg.sender];
-        if (sender.voted || toProposal >= proposals.length) return;
-        
-        sender.voted = true;
-        sender.vote = toProposal;
+        voters[msg.sender].voted = true;
+        voters[msg.sender].proposalId = toProposal;
         proposals[toProposal] += 1;
     }
 
-    function winningProposal() public constant returns (uint8 _winningProposal) {
-        uint256 winningVoteCount = 0;
-        for (uint8 proposalId = 0; proposalId < proposals.length; proposalId++)
-            if (proposals[proposalId] > winningVoteCount) {
-                winningVoteCount = proposals[proposalId];
-                _winningProposal = proposalId;
+    function winningProposal() public view returns (uint8) {
+        uint256 _maxVoteCount = 0;
+        uint8 _winningProposalId = 0;
+        for (uint8 _proposalId = 0; _proposalId < proposals.length; _proposalId++) {
+            if (proposals[_proposalId] > _maxVoteCount) {
+                _maxVoteCount = proposals[_proposalId];
+                _winningProposalId = _proposalId;
             }
+        }
+
+        return _winningProposalId;
     }
 
-    function getVoteCount(uint _proposalId) public constant returns (uint256) {
+    function getVoteCount(uint _proposalId) public view returns (uint256) {
         require(_proposalId < proposals.length);
         return proposals[_proposalId];
     }
 
-    function getProposals() public constant returns (uint256[16]) {
+    function getProposals() public view returns (uint256[16] memory) {
         return proposals;
     }
 
-    function alreadyVoted() public constant returns (bool) {
+    function alreadyVoted() public view returns (bool) {
         return voters[msg.sender].voted;
     }
 
