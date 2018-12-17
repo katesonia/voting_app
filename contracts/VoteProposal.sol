@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.4.24;
 
 contract VoteProposal {
 
@@ -18,7 +18,7 @@ contract VoteProposal {
 
     /// Give a single vote to proposal $(toProposal).
     function vote(uint8 toProposal) public {
-        require(voters[msg.sender].voted || toProposal >= proposals.length);
+        require(!voters[msg.sender].voted && toProposal < proposals.length);
         
         voters[msg.sender].voted = true;
         voters[msg.sender].proposalId = toProposal;
